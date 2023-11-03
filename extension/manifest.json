@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Instagram Reels Scroller",
+  "version": "1.0.0",
+  "content_scripts": [
+    {
+      "matches": ["https://www.instagram.com/reels/*"],
+      "js": ["./dist/content.js"]
+    }
+  ],
+  "permissions": ["tabs", "storage"],
+  "icons": {
+    "16": "./img/tiktokIcon16.png",
+    "48": "./img/tiktokIcon48.png",
+    "128": "./img/tiktokIcon128.png"
+  },
+  "action": {
+    "default_popup": "./popup/popup.html",
+    "default_icon": "./img/tiktokPopupIcon.png",
+    "default_title": "Start scrolling!"
+  },
+  "description": "Automatically scroll to the next Instagram Reel when one ends."
+}
