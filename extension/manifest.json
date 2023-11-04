@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "content_scripts": [
     {
-      "matches": ["https://www.instagram.com/*"],
+      "matches": ["https://www.instagram.com/reels/*"],
       "js": ["./dist/content.js"]
     }
   ],
