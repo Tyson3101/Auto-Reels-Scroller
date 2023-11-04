@@ -1,62 +1,65 @@
-const VIDEOS_LIST_SELECTOR = 'main > div[tabindex="0"]';
+const VIDEOS_LIST_SELECTOR = "main video";
 const sleep = (milliseconds) => {
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
 // -------
-let applicationIsOn = false;
-// let fullscreen = false;
-// let removeComments = false;
-/*
+let shortCutToggleKeys = ["shift", "s"];
+let applicationIsOn = true;
+let scrollDirection = "down";
+let amountOfPlays = 0;
+let amountOfPlaysToSkip = 1;
 (function initiate() {
-  chrome.storage.local.get(["applicationIsOn"], (result) => {
-    if (result.applicationIsOn == null) {
-      return startAutoScrolling();
-    }
-    if (result.applicationIsOn) startAutoScrolling();
-  });
-  // chrome.storage.local.get(["removeComments"], (result) => {
-  //   removeComments = !!result.removeComments;
-  // });
-})();
-
-
-document.addEventListener("keydown", (e) => {
-  if (!e.isTrusted) return;
-  if (e.key.toLowerCase() === "s" && e.shiftKey) {
-    applicationIsOn ? stopAutoScrolling() : startAutoScrolling();
-  } else if (e.key.toLowerCase() === "f" && e.shiftKey) {
-    // removeComments = !removeComments;
-    // chrome.storage.local.set({ removeComments: removeComments });
-  }
-});
-
-chrome.runtime.onMessage.addListener(({ toggle }: { toggle: boolean }) => {
-  if (toggle) {
     chrome.storage.local.get(["applicationIsOn"], (result) => {
-      if (!result.applicationIsOn) startAutoScrolling();
-      if (result.applicationIsOn) stopAutoScrolling();
+        if (result.applicationIsOn == null) {
+            return startAutoScrolling();
+        }
+        if (result.applicationIsOn)
+            startAutoScrolling();
     });
-  }
-});
-
+    chrome.storage.local.get(["shortCut"], (result) => {
+        if (result.shortCut == null) {
+            return chrome.storage.local.set({ shortCut: ["shift", "s"] });
+        }
+        shortCutToggleKeys = result.shortCut;
+    });
+    chrome.storage.local.get(["amountOfPlays"], (result) => {
+        if (result.amountOfPlays == null) {
+            return chrome.storage.local.set({ amountOfPlays: 1 });
+        }
+        amountOfPlaysToSkip = result.amountOfPlays;
+    });
+    chrome.storage.local.get(["scrollDirection"], (result) => {
+        if (result.scrollDirection == null) {
+            return chrome.storage.local.set({ scrollDirection: "down" });
+        }
+        scrollDirection = result.scrollDirection;
+    });
+})();
 function startAutoScrolling() {
-  if (!applicationIsOn) {
-    applicationIsOn = true;
-    chrome.storage.local.set({ applicationIsOn: true });
-  }
+    if (!applicationIsOn) {
+        applicationIsOn = true;
+        chrome.storage.local.set({ applicationIsOn: true });
+    }
 }
-*/
+function stopAutoScrolling() {
+    applicationIsOn = false;
+    getCurrentVideo()?.setAttribute("loop", "true");
+    chrome.storage.local.set({ applicationIsOn: false });
+}
 async function endVideoEvent() {
-    const VIDEOS_LIST = document.querySelectorAll(VIDEOS_LIST_SELECTOR);
-    if (!applicationIsOn)
-        return document.querySelector("video").removeEventListener("ended", this);
-    // if (fullscreen) {
-    //   return (
-    //     document.querySelector(NEXT_VIDEO_ARROW) as HTMLButtonElement
-    //   )?.click();
-    // }
-    let index = Array.from(VIDEOS_LIST).findIndex((ele) => ele.querySelector("video"));
-    let nextVideo = Array.from(VIDEOS_LIST)[index + 1];
+    const VIDEOS_LIST = Array.from(document.querySelectorAll(VIDEOS_LIST_SELECTOR));
+    const currentVideo = getCurrentVideo();
+    if (!currentVideo)
+        return;
+    if (!applicationIsOn) {
+        currentVideo?.setAttribute("loop", "true");
+        currentVideo.removeEventListener("ended", this);
+    }
+    amountOfPlays++;
+    if (amountOfPlays < amountOfPlaysToSkip)
+        return;
+    const index = VIDEOS_LIST.findIndex((vid) => vid.src && vid.src === currentVideo.src);
+    let nextVideo = VIDEOS_LIST[index + (scrollDirection === "down" ? 1 : -1)];
     if (nextVideo) {
         nextVideo.scrollIntoView({
             behavior: "smooth",
@@ -65,60 +68,99 @@ async function endVideoEvent() {
         });
     }
 }
-/*
-function stopAutoScrolling() {
-  applicationIsOn = false;
-  document.querySelector("video")?.setAttribute("loop", "true");
-  chrome.storage.local.set({ applicationIsOn: false });
-}
-*/
 (function loop() {
-    //  (function getCurrentVideoAndFullscreenStatus() {
-    (function getCurrentVideos() {
+    (function addVideoEndEvent() {
         if (applicationIsOn) {
-            document.querySelector("video")?.removeAttribute("loop");
-            document.querySelector("video")?.addEventListener("ended", endVideoEvent);
+            const currentVideo = getCurrentVideo();
+            console.log({
+                isPaused: currentVideo?.paused,
+                currentTime: currentVideo?.currentTime,
+                src: currentVideo?.src,
+            });
+            currentVideo?.removeAttribute("loop");
+            currentVideo?.addEventListener("ended", endVideoEvent);
         }
     })();
-    // (function appendShortCutHelp() {
-    //   const ShortCutHelp = [
-    //     `<div class="tiktok-drf9az-DivKeyboardShortcutContentItem e1l04njg3 autoTikTok">Toggle On/Off Auto Scroller <h2>shift + s</h2></div>`,
-    //     `<div class="tiktok-drf9az-DivKeyboardShortcutContentItem e1l04njg3 autoTikTok">Toggle Fullscreen Coments <h2>shift + f</h2></div>`,
-    //   ];
-    //   const element = document.querySelector(
-    //     "[class*='DivKeyboardShortcutContent']"
-    //   );
-    //   if (element && !element.querySelector(".autoTikTok")) {
-    //     ShortCutHelp.forEach((htmlString) => {
-    //       let divEle = new DOMParser().parseFromString(htmlString, "text/html");
-    //       element.append(...divEle.body.children);
-    //     });
-    //   }
-    // })();
-    // (function removeCommentsFromDom() {
-    //   const comments = Array.from(
-    //     document.querySelectorAll("[class*='DivContentContainer']")
-    //   ).find((ele) =>
-    //     ele.querySelector("[class*='DivCommentListContainer']")
-    //   ) as HTMLDivElement;
-    //   const commentsList = comments?.querySelector(
-    //     "[class*='DivCommentListContainer']"
-    //   ) as HTMLDivElement;
-    //   if (removeComments && fullscreen) {
-    //     try {
-    //       if (comments) {
-    //         if (commentsList) commentsList.style.overflow = "hidden auto";
-    //         comments.style.display = "none";
-    //       }
-    //     } catch {}
-    //   } else {
-    //     try {
-    //       if (comments) {
-    //         if (commentsList) commentsList.style.overflow = "hidden auto";
-    //         comments.style.display = "";
-    //       }
-    //     } catch {}
-    //   }
-    // })();
     sleep(100).then(loop);
 })();
+// Util
+function getCurrentVideo() {
+    return Array.from(document.querySelectorAll(VIDEOS_LIST_SELECTOR)).find((video) => {
+        const videoRect = video.getBoundingClientRect();
+        const isVideoInView = videoRect.top >= 0 &&
+            videoRect.left >= 0 &&
+            videoRect.bottom <=
+                (window.innerHeight || document.documentElement.clientHeight) &&
+            videoRect.right <=
+                (window.innerWidth || document.documentElement.clientWidth);
+        return isVideoInView;
+    });
+}
+chrome.runtime.onMessage.addListener(({ toggle }) => {
+    if (toggle) {
+        chrome.storage.local.get(["applicationIsOn"], (result) => {
+            if (!result.applicationIsOn)
+                startAutoScrolling();
+            if (result.applicationIsOn)
+                stopAutoScrolling();
+        });
+    }
+});
+chrome.storage.sync.onChanged.addListener((changes) => {
+    if (changes.shortCut) {
+        shortCutToggleKeys = changes.shortCut.newValue;
+    }
+    if (changes.amountOfPlays) {
+        amountOfPlaysToSkip = changes.amountOfPlays.newValue;
+    }
+    if (changes.scrollDirection) {
+        scrollDirection = changes.scrollDirection.newValue;
+    }
+});
+function shortCutListener() {
+    let pressedKeys = [];
+    // Web Dev Simplifed Debounce
+    function debounce(cb, delay) {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                cb(...args);
+            }, delay);
+        };
+    }
+    const checkKeys = (keysToCheck, delay = 700) => {
+        return new Promise((resolve) => {
+            function debounceCB() {
+                if (pressedKeys.length == keysToCheck.length) {
+                    let match = true;
+                    for (let i = 0; i < pressedKeys.length; i++) {
+                        if (pressedKeys[i] != keysToCheck[i]) {
+                            match = false;
+                            break;
+                        }
+                    }
+                    resolve(match);
+                }
+                else
+                    resolve(false);
+            }
+            debounce(debounceCB, delay)();
+        });
+    };
+    document.addEventListener("keydown", async (e) => {
+        if (!e.key)
+            return;
+        pressedKeys.push(e.key.toLowerCase());
+        // Shortcut for toggle application on/off
+        if (await checkKeys(shortCutToggleKeys)) {
+            if (applicationIsOn) {
+                stopAutoScrolling();
+            }
+            else {
+                startAutoScrolling();
+            }
+        }
+        pressedKeys = [];
+    });
+}

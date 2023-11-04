@@ -29,7 +29,7 @@
     }
     .toggleBtn {
       border: 1px solid black;
-      height: 20vh;
+      height: 52px;
       width: 50vw;
       font-size: 1.5rem;
     }
@@ -54,57 +54,90 @@
       background-color: rgb(205, 119, 119);
     }
 
-    .shortCuts {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      margin-top: 0.2rem;
-    }
-
-    .shortCut {
-      border: 1px solid black;
-      background-color: rgb(165, 195, 204);
-      width: fit-content;
-      margin-bottom: 0.2rem;
-      position: absolute;
-      padding: 0 0.8rem;
-      top: 1rem;
-    }
     .shortCut span {
       padding: 0.2em;
     }
     .remove {
       display: none;
     }
+
+    .settings {
+      margin-top: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      border: 1px solid black;
+      padding: 0 0 0.5rem 0;
+    }
+
+    .settings h1 {
+      margin: 0 0 3px 0;
+    }
   </style>
   <body>
-    <h1>Auto TikTok Scroller Extension</h1>
+    <h1>Auto Instagram Reels Scroller</h1>
     <span style="display: block"
       ><i style="font-size: 4.2vw"></i> <br />Automatically scrolls when a
-      TikTok ends.<br
-    /></span>
-    <span id="fllscreen" style="display: block"
-      >Works in fullscreen as well!<br
+      Instagram Reel ends.<br
     /></span>
     <button class="toggleBtn">Start</button>
     <i id="error" style="color: red; display: block"></i>
     <div class="shortCuts">
       <div class="shortCut remove">
         <p>Toggle Auto Scroller: <span>shift + s</span></p>
-        <p>Toggle Fullscreen Comments: <span>shift + f</span></p>
       </div>
-      <button id="shortCutBtn">Show Shortcuts</button>
     </div>
+
+    <div class="settings">
+      <h1>Settings</h1>
+      <div>
+        <label for="scrollDirection"> Scroll Direction </label> <br />
+        <select name="scrollDirection" id="scrollDirection">
+          <option value="down">Down</option>
+          <option value="up">Up</option>
+        </select>
+      </div>
+      <div>
+        <label for="amountOfPlays"> Amount of Plays Before Scrolling </label>
+        <br />
+        <input
+          type="number"
+          name="amountOfPlays"
+          id="amountOfPlays"
+          value="1"
+          min="1"
+          style="width: 40%"
+        />
+      </div>
+      <div>
+        <label for="shortCut">
+          Toggle Shortcut
+          <span style="font-style: italic; font-size: 0.7rem"
+            >(Seperate with <span style="font-weight: bold">+</span>)
+          </span></label
+        >
+        <br />
+        <input
+          type="text"
+          name="shortCut"
+          id="shortCut"
+          style="width: 70%"
+          value="shift+s"
+        />
+      </div>
+    </div>
+
     <span style="display: block"
       ><p id="adYt">
         <br />Prefer YT Shorts?
         <a
-          href="https://chrome.google.com/webstore/detail/auto-youtube-shorts-scroller/elggcfikfbaijgcofcapgeahjaclpfnf"
+          href="https://chrome.google.com/webstore/detail/auto-youtube-shorts-scroller/ckbnikemebopgknkpgjlkbffpkkhblbe"
           target="_blank"
           >Download the Shorts version!</a
-        ><br /></p
-    ></span>
+        ><br />
+      </p>
+    </span>
     <h4 id="adChrome">
       Do you enjoy this extension? Make sure to give it 5 stars on the
       <a
@@ -127,7 +160,7 @@
         display: inline;
         color: inherit;
       "
-      href="https://github.com/Tyson3101/Auto-TikTok-Scroller"
+      href="https://github.com/Tyson3101/Auto-Instagram-Reels-Scroller"
       class="github-corner"
     >
       <i style="font-size: 3rem" class="fa fa-github"></i

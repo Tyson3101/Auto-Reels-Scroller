@@ -15,7 +15,7 @@
     "128": "./img/tiktokIcon128.png"
   },
   "action": {
-    "default_popup": "./popup/popup.html",
+    "default_popup": "./popup/popup.htm",
     "default_icon": "./img/tiktokPopupIcon.png",
     "default_title": "Start scrolling!"
   },

@@ -1,15 +1,16 @@
-const VIDEOS_LIST_SELECTOR = 'main > div[tabindex="0"]';
+const VIDEOS_LIST_SELECTOR = "main video";
 
 const sleep = (milliseconds: number) => {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
-
 // -------
-let applicationIsOn = false;
-// let fullscreen = false;
-// let removeComments = false;
 
-/*
+let shortCutToggleKeys = ["shift", "s"];
+let applicationIsOn = true;
+let scrollDirection = "down";
+let amountOfPlays = 0;
+let amountOfPlaysToSkip = 1;
+
 (function initiate() {
   chrome.storage.local.get(["applicationIsOn"], (result) => {
     if (result.applicationIsOn == null) {
@@ -17,21 +18,102 @@ let applicationIsOn = false;
     }
     if (result.applicationIsOn) startAutoScrolling();
   });
-  // chrome.storage.local.get(["removeComments"], (result) => {
-  //   removeComments = !!result.removeComments;
-  // });
+  chrome.storage.local.get(["shortCut"], (result) => {
+    if (result.shortCut == null) {
+      return chrome.storage.local.set({ shortCut: ["shift", "s"] });
+    }
+    shortCutToggleKeys = result.shortCut;
+  });
+  chrome.storage.local.get(["amountOfPlays"], (result) => {
+    if (result.amountOfPlays == null) {
+      return chrome.storage.local.set({ amountOfPlays: 1 });
+    }
+    amountOfPlaysToSkip = result.amountOfPlays;
+  });
+  chrome.storage.local.get(["scrollDirection"], (result) => {
+    if (result.scrollDirection == null) {
+      return chrome.storage.local.set({ scrollDirection: "down" });
+    }
+    scrollDirection = result.scrollDirection;
+  });
 })();
 
-
-document.addEventListener("keydown", (e) => {
-  if (!e.isTrusted) return;
-  if (e.key.toLowerCase() === "s" && e.shiftKey) {
-    applicationIsOn ? stopAutoScrolling() : startAutoScrolling();
-  } else if (e.key.toLowerCase() === "f" && e.shiftKey) {
-    // removeComments = !removeComments;
-    // chrome.storage.local.set({ removeComments: removeComments });
+function startAutoScrolling() {
+  if (!applicationIsOn) {
+    applicationIsOn = true;
+    chrome.storage.local.set({ applicationIsOn: true });
   }
-});
+}
+
+function stopAutoScrolling() {
+  applicationIsOn = false;
+  getCurrentVideo()?.setAttribute("loop", "true");
+  chrome.storage.local.set({ applicationIsOn: false });
+}
+
+async function endVideoEvent() {
+  const VIDEOS_LIST = Array.from(
+    document.querySelectorAll(VIDEOS_LIST_SELECTOR)
+  ) as HTMLVideoElement[];
+
+  const currentVideo = getCurrentVideo();
+  if (!currentVideo) return;
+  if (!applicationIsOn) {
+    currentVideo?.setAttribute("loop", "true");
+    currentVideo.removeEventListener("ended", this);
+  }
+  amountOfPlays++;
+  if (amountOfPlays < amountOfPlaysToSkip) return;
+
+  const index = VIDEOS_LIST.findIndex(
+    (vid) => vid.src && vid.src === currentVideo.src
+  );
+  let nextVideo = VIDEOS_LIST[index + (scrollDirection === "down" ? 1 : -1)];
+
+  if (nextVideo) {
+    nextVideo.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "center",
+    });
+  }
+}
+
+(function loop() {
+  (function addVideoEndEvent() {
+    if (applicationIsOn) {
+      const currentVideo = getCurrentVideo();
+      console.log({
+        isPaused: currentVideo?.paused,
+        currentTime: currentVideo?.currentTime,
+        src: currentVideo?.src,
+      });
+      currentVideo?.removeAttribute("loop");
+      currentVideo?.addEventListener("ended", endVideoEvent);
+    }
+  })();
+
+  sleep(100).then(loop);
+})();
+
+// Util
+function getCurrentVideo() {
+  return Array.from(document.querySelectorAll(VIDEOS_LIST_SELECTOR)).find(
+    (video) => {
+      const videoRect = video.getBoundingClientRect();
+
+      const isVideoInView =
+        videoRect.top >= 0 &&
+        videoRect.left >= 0 &&
+        videoRect.bottom <=
+          (window.innerHeight || document.documentElement.clientHeight) &&
+        videoRect.right <=
+          (window.innerWidth || document.documentElement.clientWidth);
+
+      return isVideoInView;
+    }
+  ) as HTMLVideoElement | null;
+}
 
 chrome.runtime.onMessage.addListener(({ toggle }: { toggle: boolean }) => {
   if (toggle) {
@@ -42,91 +124,64 @@ chrome.runtime.onMessage.addListener(({ toggle }: { toggle: boolean }) => {
   }
 });
 
-function startAutoScrolling() {
-  if (!applicationIsOn) {
-    applicationIsOn = true;
-    chrome.storage.local.set({ applicationIsOn: true });
+chrome.storage.sync.onChanged.addListener((changes) => {
+  if (changes.shortCut) {
+    shortCutToggleKeys = changes.shortCut.newValue;
   }
-}
-*/
+  if (changes.amountOfPlays) {
+    amountOfPlaysToSkip = changes.amountOfPlays.newValue;
+  }
+  if (changes.scrollDirection) {
+    scrollDirection = changes.scrollDirection.newValue;
+  }
+});
 
-async function endVideoEvent() {
-  const VIDEOS_LIST = document.querySelectorAll(
-    VIDEOS_LIST_SELECTOR
-  ) as NodeListOf<HTMLVideoElement>;
-  if (!applicationIsOn)
-    return document.querySelector("video").removeEventListener("ended", this);
-  // if (fullscreen) {
-  //   return (
-  //     document.querySelector(NEXT_VIDEO_ARROW) as HTMLButtonElement
-  //   )?.click();
-  // }
-  let index = Array.from(VIDEOS_LIST).findIndex((ele) =>
-    ele.querySelector("video")
-  );
-  let nextVideo = Array.from(VIDEOS_LIST)[index + 1];
-  if (nextVideo) {
-    nextVideo.scrollIntoView({
-      behavior: "smooth",
-      inline: "center",
-      block: "center",
-    });
+function shortCutListener() {
+  let pressedKeys = [];
+  // Web Dev Simplifed Debounce
+  function debounce(cb: Function, delay: number) {
+    let timeout: number;
+
+    return (...args: any) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        cb(...args);
+      }, delay);
+    };
   }
-}
-/*
-function stopAutoScrolling() {
-  applicationIsOn = false;
-  document.querySelector("video")?.setAttribute("loop", "true");
-  chrome.storage.local.set({ applicationIsOn: false });
-}
-*/
-(function loop() {
-  //  (function getCurrentVideoAndFullscreenStatus() {
-  (function getCurrentVideos() {
-    if (applicationIsOn) {
-      document.querySelector("video")?.removeAttribute("loop");
-      document.querySelector("video")?.addEventListener("ended", endVideoEvent);
+
+  const checkKeys = (
+    keysToCheck: string[],
+    delay: number = 700
+  ): Promise<boolean> => {
+    return new Promise((resolve) => {
+      function debounceCB() {
+        if (pressedKeys.length == keysToCheck.length) {
+          let match = true;
+          for (let i = 0; i < pressedKeys.length; i++) {
+            if (pressedKeys[i] != keysToCheck[i]) {
+              match = false;
+              break;
+            }
+          }
+          resolve(match);
+        } else resolve(false);
+      }
+      debounce(debounceCB, delay)();
+    });
+  };
+
+  document.addEventListener("keydown", async (e) => {
+    if (!e.key) return;
+    pressedKeys.push(e.key.toLowerCase());
+    // Shortcut for toggle application on/off
+    if (await checkKeys(shortCutToggleKeys)) {
+      if (applicationIsOn) {
+        stopAutoScrolling();
+      } else {
+        startAutoScrolling();
+      }
     }
-  })();
-  // (function appendShortCutHelp() {
-  //   const ShortCutHelp = [
-  //     `<div class="tiktok-drf9az-DivKeyboardShortcutContentItem e1l04njg3 autoTikTok">Toggle On/Off Auto Scroller <h2>shift + s</h2></div>`,
-  //     `<div class="tiktok-drf9az-DivKeyboardShortcutContentItem e1l04njg3 autoTikTok">Toggle Fullscreen Coments <h2>shift + f</h2></div>`,
-  //   ];
-  //   const element = document.querySelector(
-  //     "[class*='DivKeyboardShortcutContent']"
-  //   );
-  //   if (element && !element.querySelector(".autoTikTok")) {
-  //     ShortCutHelp.forEach((htmlString) => {
-  //       let divEle = new DOMParser().parseFromString(htmlString, "text/html");
-  //       element.append(...divEle.body.children);
-  //     });
-  //   }
-  // })();
-  // (function removeCommentsFromDom() {
-  //   const comments = Array.from(
-  //     document.querySelectorAll("[class*='DivContentContainer']")
-  //   ).find((ele) =>
-  //     ele.querySelector("[class*='DivCommentListContainer']")
-  //   ) as HTMLDivElement;
-  //   const commentsList = comments?.querySelector(
-  //     "[class*='DivCommentListContainer']"
-  //   ) as HTMLDivElement;
-  //   if (removeComments && fullscreen) {
-  //     try {
-  //       if (comments) {
-  //         if (commentsList) commentsList.style.overflow = "hidden auto";
-  //         comments.style.display = "none";
-  //       }
-  //     } catch {}
-  //   } else {
-  //     try {
-  //       if (comments) {
-  //         if (commentsList) commentsList.style.overflow = "hidden auto";
-  //         comments.style.display = "";
-  //       }
-  //     } catch {}
-  //   }
-  // })();
-  sleep(100).then(loop);
-})();
+    pressedKeys = [];
+  });
+}
