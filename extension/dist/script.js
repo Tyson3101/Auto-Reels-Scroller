@@ -3,6 +3,7 @@ const toggleBtn = document.querySelector(".toggleBtn");
 const shortCutInput = document.querySelector("#shortCut");
 const amountOfPlaysInput = document.querySelector("#amountOfPlays");
 const scrollDirectionInput = document.querySelector("#scrollDirection");
+const scrollOnCommentsInput = document.querySelector("#scrollOnComments");
 chrome.storage.onChanged.addListener((result) => {
     if (result.applicationIsOn?.newValue == undefined)
         return;
@@ -57,6 +58,9 @@ chrome.storage.sync.get(["amountOfPlays"], (result) => {
 chrome.storage.sync.get(["scrollDirection"], (result) => {
     scrollDirectionInput.value = result.scrollDirection;
 });
+chrome.storage.sync.get(["scrollOnComments"], (result) => {
+    scrollOnCommentsInput.value = result.scrollOnComments;
+});
 shortCutInput.onchange = async (e) => {
     let newShortCut = shortCutInput.value.trim().split("+");
     await chrome.storage.sync.set({ shortCut: newShortCut });
@@ -71,6 +75,12 @@ amountOfPlaysInput.onchange = async (e) => {
 scrollDirectionInput.onchange = async (e) => {
     await chrome.storage.sync.set({
         scrollDirection: scrollDirectionInput.value,
+    });
+    messageTabOfStorageChange();
+};
+scrollOnCommentsInput.onchange = async (e) => {
+    await chrome.storage.sync.set({
+        scrollOnComments: scrollOnCommentsInput.value === "true",
     });
     messageTabOfStorageChange();
 };

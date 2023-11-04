@@ -1,10 +1,12 @@
 const VIDEOS_LIST_SELECTOR = "main video";
+const COMMENTS_SELECTOR = ".BasePortal span";
 const sleep = (milliseconds) => {
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
 // -------
 let shortCutToggleKeys = ["shift", "s"];
 let applicationIsOn = true;
+let scrollOnComments = false;
 let scrollDirection = "down";
 let amountOfPlays = 0;
 let amountOfPlaysToSkip = 1;
@@ -24,6 +26,9 @@ let amountOfPlaysToSkip = 1;
     });
     chrome.storage.sync.get(["scrollDirection"], (result) => {
         scrollDirection = result.scrollDirection;
+    });
+    chrome.storage.sync.get(["scrollOnComments"], (result) => {
+        scrollOnComments = result.scrollOnComments;
     });
 })();
 function startAutoScrolling() {
@@ -58,13 +63,26 @@ async function endVideoEvent() {
         return;
     const index = VIDEOS_LIST.findIndex((vid) => vid.src && vid.src === currentVideo.src);
     let nextVideo = VIDEOS_LIST[index + (scrollDirection === "down" ? 1 : -1)];
-    if (nextVideo) {
-        amountOfPlays = 0;
-        nextVideo.scrollIntoView({
-            behavior: "smooth",
-            inline: "center",
-            block: "center",
-        });
+    if (!scrollOnComments && checkIfCommentsAreOpen()) {
+        let checkInterval = setInterval(() => {
+            if (scrollOnComments || !checkIfCommentsAreOpen()) {
+                scrollToNextVideo();
+                clearInterval(checkInterval);
+            }
+        }, 100);
+    }
+    else {
+        scrollToNextVideo();
+    }
+    function scrollToNextVideo() {
+        if (nextVideo) {
+            amountOfPlays = 0;
+            nextVideo.scrollIntoView({
+                behavior: "smooth",
+                inline: "center",
+                block: "center",
+            });
+        }
     }
 }
 (function loop() {
@@ -90,6 +108,10 @@ function getCurrentVideo() {
         return isVideoInView;
     });
 }
+function checkIfCommentsAreOpen() {
+    const comments = document.querySelector(COMMENTS_SELECTOR);
+    return !!comments?.innerText?.length;
+}
 chrome.runtime.onMessage.addListener(({ toggle, changeOfSettings }) => {
     if (toggle) {
         chrome.storage.sync.get(["applicationIsOn"], (result) => {
@@ -100,10 +122,11 @@ chrome.runtime.onMessage.addListener(({ toggle, changeOfSettings }) => {
         });
     }
     if (changeOfSettings) {
-        chrome.storage.sync.get(["shortCut", "amountOfPlays", "scrollDirection"], (result) => {
+        chrome.storage.sync.get(["shortCut", "amountOfPlays", "scrollDirection", "scrollOnComments"], (result) => {
             shortCutToggleKeys = result.shortCut;
             amountOfPlaysToSkip = parseInt(result.amountOfPlays);
             scrollDirection = result.scrollDirection;
+            scrollOnComments = result.scrollOnComments;
         });
     }
 });

@@ -3,6 +3,7 @@ const allStorageKeys = [
     "scrollDirection",
     "amountOfPlays",
     "shortCut",
+    "scrollOnComments",
 ];
 chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === "install") {
@@ -19,7 +20,10 @@ chrome.runtime.onInstalled.addListener((details) => {
             chrome.storage.sync.set({ amountOfPlays: 1 });
         }
         if (result.shortCut == undefined) {
-            chrome.storage.sync.set({ shortCut: "shift+s" });
+            chrome.storage.sync.set({ shortCut: ["shift", "s"] });
+        }
+        if (result.scrollOnComments == undefined) {
+            chrome.storage.sync.set({ scrollOnComments: true });
         }
     });
 });
