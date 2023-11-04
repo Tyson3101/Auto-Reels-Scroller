@@ -71,6 +71,7 @@ async function endVideoEvent() {
   let nextVideo = VIDEOS_LIST[index + (scrollDirection === "down" ? 1 : -1)];
 
   if (nextVideo) {
+    amountOfPlays = 0;
     nextVideo.scrollIntoView({
       behavior: "smooth",
       inline: "center",

@@ -10,13 +10,13 @@
   ],
   "permissions": ["tabs", "storage"],
   "icons": {
-    "16": "./img/tiktokIcon16.png",
-    "48": "./img/tiktokIcon48.png",
-    "128": "./img/tiktokIcon128.png"
+    "16": "./img/Icon16.png",
+    "48": "./img/Icon48.png",
+    "128": "./img/Icon128.png"
   },
   "action": {
     "default_popup": "./popup/popup.htm",
-    "default_icon": "./img/tiktokPopupIcon.png",
+    "default_icon": "./img/Icon128.png",
     "default_title": "Start scrolling!"
   },
   "description": "Automatically scroll to the next Instagram Reel when one ends."
