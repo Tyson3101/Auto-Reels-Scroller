@@ -14,7 +14,7 @@ chrome.storage.onChanged.addListener((result) => {
   changeToggleButton(result.applicationIsOn.newValue);
 });
 
-chrome.storage.local.get(["applicationIsOn"], (result) => {
+chrome.storage.sync.get(["applicationIsOn"], (result) => {
   changeToggleButton(result.applicationIsOn);
 });
 
@@ -46,48 +46,54 @@ function changeToggleButton(result: boolean) {
 }
 
 function changeApplicationIsOn() {
-  chrome.storage.local.get(["applicationIsOn"], (result) => {
+  chrome.storage.sync.get(["applicationIsOn"], (result) => {
     if (!result.applicationIsOn == undefined) {
-      return chrome.storage.local.set({
-        applicationIsOn: false,
+      return chrome.storage.sync.set({
+        applicationIsOn: true,
       });
     }
-    chrome.storage.local.set({ applicationIsOn: !result.applicationIsOn });
+    chrome.storage.sync.set({ applicationIsOn: !result.applicationIsOn });
   });
 }
 
 // Settings
 
-chrome.storage.local.get(["shortCut"], (result) => {
-  if (result.shortCut == null) {
-    return chrome.storage.local.set({ shortCut: ["Alt", "s"] });
-  }
+chrome.storage.sync.get(["shortCut"], (result) => {
   shortCutInput.value = result.shortCut.join("+");
 });
 
-chrome.storage.local.get(["amountOfPlays"], (result) => {
-  if (result.amountOfPlays == null) {
-    return chrome.storage.local.set({ amountOfPlays: 1 });
-  }
+chrome.storage.sync.get(["amountOfPlays"], (result) => {
   amountOfPlaysInput.value = result.amountOfPlays;
 });
 
-chrome.storage.local.get(["scrollDirection"], (result) => {
-  if (result.scrollDirection == null) {
-    return chrome.storage.local.set({ scrollDirection: "down" });
-  }
+chrome.storage.sync.get(["scrollDirection"], (result) => {
   scrollDirectionInput.value = result.scrollDirection;
 });
 
-shortCutInput.onchange = (e: Event) => {
+shortCutInput.onchange = async (e: Event) => {
   let newShortCut = shortCutInput.value.trim().split("+");
-  chrome.storage.local.set({ shortCut: newShortCut });
+  await chrome.storage.sync.set({ shortCut: newShortCut });
+  messageTabOfStorageChange();
 };
 
-amountOfPlaysInput.onchange = (e: Event) => {
-  chrome.storage.local.set({ amountOfPlays: amountOfPlaysInput.value });
+amountOfPlaysInput.onchange = async (e: Event) => {
+  await chrome.storage.sync.set({
+    amountOfPlays: parseInt(amountOfPlaysInput.value),
+  });
+  messageTabOfStorageChange();
 };
 
-scrollDirectionInput.onchange = (e: Event) => {
-  chrome.storage.local.set({ scrollDirection: scrollDirectionInput.value });
+scrollDirectionInput.onchange = async (e: Event) => {
+  await chrome.storage.sync.set({
+    scrollDirection: scrollDirectionInput.value,
+  });
+  messageTabOfStorageChange();
 };
+
+function messageTabOfStorageChange() {
+  chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+    if (tabs[0]?.url?.includes("instagram")) {
+      chrome.tabs.sendMessage(tabs[0].id, { changeOfSettings: true });
+    }
+  });
+}

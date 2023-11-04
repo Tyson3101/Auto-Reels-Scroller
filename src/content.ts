@@ -12,28 +12,19 @@ let amountOfPlays = 0;
 let amountOfPlaysToSkip = 1;
 
 (function initiate() {
-  chrome.storage.local.get(["applicationIsOn"], (result) => {
+  chrome.storage.sync.get(["applicationIsOn"], (result) => {
     if (result.applicationIsOn == null) {
       return startAutoScrolling();
     }
     if (result.applicationIsOn) startAutoScrolling();
   });
-  chrome.storage.local.get(["shortCut"], (result) => {
-    if (result.shortCut == null) {
-      return chrome.storage.local.set({ shortCut: ["shift", "s"] });
-    }
+  chrome.storage.sync.get(["shortCut"], (result) => {
     shortCutToggleKeys = result.shortCut;
   });
-  chrome.storage.local.get(["amountOfPlays"], (result) => {
-    if (result.amountOfPlays == null) {
-      return chrome.storage.local.set({ amountOfPlays: 1 });
-    }
+  chrome.storage.sync.get(["amountOfPlays"], (result) => {
     amountOfPlaysToSkip = result.amountOfPlays;
   });
-  chrome.storage.local.get(["scrollDirection"], (result) => {
-    if (result.scrollDirection == null) {
-      return chrome.storage.local.set({ scrollDirection: "down" });
-    }
+  chrome.storage.sync.get(["scrollDirection"], (result) => {
     scrollDirection = result.scrollDirection;
   });
 })();
@@ -41,17 +32,24 @@ let amountOfPlaysToSkip = 1;
 function startAutoScrolling() {
   if (!applicationIsOn) {
     applicationIsOn = true;
-    chrome.storage.local.set({ applicationIsOn: true });
+    chrome.storage.sync.set({ applicationIsOn: true });
   }
 }
 
 function stopAutoScrolling() {
   applicationIsOn = false;
   getCurrentVideo()?.setAttribute("loop", "true");
-  chrome.storage.local.set({ applicationIsOn: false });
+  chrome.storage.sync.set({ applicationIsOn: false });
 }
 
 async function endVideoEvent() {
+  console.log({
+    amountOfPlays,
+    amountOfPlaysToSkip,
+    scrollDirection,
+    applicationIsOn,
+    currentVideo: getCurrentVideo(),
+  });
   const VIDEOS_LIST = Array.from(
     document.querySelectorAll(VIDEOS_LIST_SELECTOR)
   ) as HTMLVideoElement[];
@@ -84,11 +82,6 @@ async function endVideoEvent() {
   (function addVideoEndEvent() {
     if (applicationIsOn) {
       const currentVideo = getCurrentVideo();
-      console.log({
-        isPaused: currentVideo?.paused,
-        currentTime: currentVideo?.currentTime,
-        src: currentVideo?.src,
-      });
       currentVideo?.removeAttribute("loop");
       currentVideo?.addEventListener("ended", endVideoEvent);
     }
@@ -116,24 +109,22 @@ function getCurrentVideo() {
   ) as HTMLVideoElement | null;
 }
 
-chrome.runtime.onMessage.addListener(({ toggle }: { toggle: boolean }) => {
+chrome.runtime.onMessage.addListener(({ toggle, changeOfSettings }) => {
   if (toggle) {
-    chrome.storage.local.get(["applicationIsOn"], (result) => {
+    chrome.storage.sync.get(["applicationIsOn"], (result) => {
       if (!result.applicationIsOn) startAutoScrolling();
       if (result.applicationIsOn) stopAutoScrolling();
     });
   }
-});
-
-chrome.storage.sync.onChanged.addListener((changes) => {
-  if (changes.shortCut) {
-    shortCutToggleKeys = changes.shortCut.newValue;
-  }
-  if (changes.amountOfPlays) {
-    amountOfPlaysToSkip = changes.amountOfPlays.newValue;
-  }
-  if (changes.scrollDirection) {
-    scrollDirection = changes.scrollDirection.newValue;
+  if (changeOfSettings) {
+    chrome.storage.sync.get(
+      ["shortCut", "amountOfPlays", "scrollDirection"],
+      (result) => {
+        shortCutToggleKeys = result.shortCut;
+        amountOfPlaysToSkip = parseInt(result.amountOfPlays);
+        scrollDirection = result.scrollDirection;
+      }
+    );
   }
 });
 

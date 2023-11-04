@@ -15,9 +15,12 @@
     "128": "./img/Icon128.png"
   },
   "action": {
-    "default_popup": "./popup/popup.htm",
+    "default_popup": "./popup/popup.html",
     "default_icon": "./img/Icon128.png",
     "default_title": "Start scrolling!"
+  },
+  "background": {
+    "service_worker": "./dist/background.js"
   },
   "description": "Automatically scroll to the next Instagram Reel when one ends."
 }
