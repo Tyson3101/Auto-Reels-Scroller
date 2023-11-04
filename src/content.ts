@@ -13,6 +13,9 @@ let scrollDirection = "down";
 let amountOfPlays = 0;
 let amountOfPlaysToSkip = 1;
 
+console.log(`Auto Instagram Reels Scroller is Running
+Status: ${applicationIsOn ? "ON" : "OFF"}`);
+
 (function initiate() {
   chrome.storage.sync.get(["applicationIsOn"], (result) => {
     if (result.applicationIsOn == null) {
@@ -74,6 +77,7 @@ async function endVideoEvent() {
   let nextVideo = VIDEOS_LIST[index + (scrollDirection === "down" ? 1 : -1)];
 
   if (!scrollOnComments && checkIfCommentsAreOpen()) {
+    currentVideo.pause();
     let checkInterval = setInterval(() => {
       if (scrollOnComments || !checkIfCommentsAreOpen()) {
         scrollToNextVideo();
@@ -143,6 +147,7 @@ chrome.runtime.onMessage.addListener(({ toggle, changeOfSettings }) => {
     chrome.storage.sync.get(
       ["shortCut", "amountOfPlays", "scrollDirection", "scrollOnComments"],
       (result) => {
+        console.log({ changeOfSettings, ...result });
         shortCutToggleKeys = result.shortCut;
         amountOfPlaysToSkip = parseInt(result.amountOfPlays);
         scrollDirection = result.scrollDirection;
@@ -152,10 +157,12 @@ chrome.runtime.onMessage.addListener(({ toggle, changeOfSettings }) => {
   }
 });
 
-function shortCutListener() {
-  let pressedKeys = [];
-  // Web Dev Simplifed Debounce
-  function debounce(cb: Function, delay: number) {
+(function shortCutListener() {
+  // Encapsulate variables
+  const pressedKeys = [];
+  const debounceDelay = 700;
+
+  function debounce(cb: any, delay: number) {
     let timeout: number;
 
     return (...args: any) => {
@@ -166,16 +173,13 @@ function shortCutListener() {
     };
   }
 
-  const checkKeys = (
-    keysToCheck: string[],
-    delay: number = 700
-  ): Promise<boolean> => {
+  const checkKeys = (keysToCheck: string[]) => {
     return new Promise((resolve) => {
       function debounceCB() {
-        if (pressedKeys.length == keysToCheck.length) {
+        if (pressedKeys.length === keysToCheck.length) {
           let match = true;
           for (let i = 0; i < pressedKeys.length; i++) {
-            if (pressedKeys[i] != keysToCheck[i]) {
+            if (pressedKeys[i] !== keysToCheck[i]) {
               match = false;
               break;
             }
@@ -183,14 +187,14 @@ function shortCutListener() {
           resolve(match);
         } else resolve(false);
       }
-      debounce(debounceCB, delay)();
+      debounce(debounceCB, debounceDelay)();
     });
   };
 
   document.addEventListener("keydown", async (e) => {
     if (!e.key) return;
     pressedKeys.push(e.key.toLowerCase());
-    // Shortcut for toggle application on/off
+
     if (await checkKeys(shortCutToggleKeys)) {
       if (applicationIsOn) {
         stopAutoScrolling();
@@ -198,6 +202,6 @@ function shortCutListener() {
         startAutoScrolling();
       }
     }
-    pressedKeys = [];
+    pressedKeys.length = 0; // Clear the array
   });
-}
+})();

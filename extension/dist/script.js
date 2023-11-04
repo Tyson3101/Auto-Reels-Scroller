@@ -62,7 +62,7 @@ chrome.storage.sync.get(["scrollOnComments"], (result) => {
     scrollOnCommentsInput.value = result.scrollOnComments;
 });
 shortCutInput.onchange = async (e) => {
-    let newShortCut = shortCutInput.value.trim().split("+");
+    let newShortCut = shortCutInput.value.trim().toLowerCase().split("+");
     await chrome.storage.sync.set({ shortCut: newShortCut });
     messageTabOfStorageChange();
 };

@@ -78,7 +78,7 @@ chrome.storage.sync.get(["scrollOnComments"], (result) => {
 });
 
 shortCutInput.onchange = async (e: Event) => {
-  let newShortCut = shortCutInput.value.trim().split("+");
+  let newShortCut = shortCutInput.value.trim().toLowerCase().split("+");
   await chrome.storage.sync.set({ shortCut: newShortCut });
   messageTabOfStorageChange();
 };
