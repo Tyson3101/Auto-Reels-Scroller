@@ -24,6 +24,6 @@
 
 <img src="./img/ScreenshotAutoInstagramReels.png" width="500" height="400" />
 
-##### If you have any suggestions or experience problems, post an issue on the GitHub page: [https://github.com/Tyson3101/Auto-Instagram-Reels-Scroller/issues](https://github.com/Tyson3101/Auto-Instagram-Reels-Scroller/issues)
+##### If you have any suggestions or experience problems, post an issue on the GitHub page: [https://github.com/Tyson3101/Auto-Reels-Scroller/issues](https://github.com/Tyson3101/Auto--Reels-Scroller/issues)
 
 ###### By Tyson3101
