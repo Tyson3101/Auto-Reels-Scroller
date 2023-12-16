@@ -1,4 +1,4 @@
-# [Auto-TikTok-Scroller](https://github.com/Tyson3101/Auto-TikTok-Scroller)
+# [Auto-Reels-Scroller](https://github.com/Tyson3101/Auto-Reels-Scroller)
 
 ## A Chrome Extension that adds an auto-scroll feature on Instagram Reels so you can watch Reels without the need to touch your mouse.
 
@@ -12,7 +12,7 @@
 
 ## Extension
 
-**Option 1** – Install it from the [Chrome Web Store](https://chrome.google.com/webstore/detail/auto-tiktok-scroller/bpgleagdakihfeingnhnknblcfgbfcdo)
+**Option 1** – Install it from the [Chrome Web Store](https://chrome.google.com/webstore/detail/bpgleagdakihfeingnhnknblcfgbfcdo)
 
 **Option 2** – Install it from source:
 
