@@ -4,7 +4,7 @@
 
 <img src="./extension/img/Icon128.png"/>
 
-#### Whenever a Instagram Reel ends, the extension will automatically scroll to the next one for you. Great for doing homework and watching Reeks at the same time without the need to switch tabs!
+#### Whenever a Instagram Reel ends, the extension will automatically scroll to the next one for you.
 
 - Extension: [Click here](./README.md#extension)
 
